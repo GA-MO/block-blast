@@ -9,8 +9,9 @@ export interface AmbientBackground {
 /** Unique texture key for the procedurally-generated soft glow dot. */
 const SOFT_DOT_KEY = "ambient-soft-dot";
 
-/** Number of floating bokeh dots. */
-const DOT_COUNT = 34;
+/** Number of floating bokeh dots. Kept modest: each dot is an additive-blend
+ *  full-screen-ish sprite, and additive overdraw is the main GPU/heat cost. */
+const DOT_COUNT = 16;
 
 /** Diameter (px) of the source soft-dot texture before scaling. */
 const DOT_TEX_SIZE = 96;
@@ -180,20 +181,9 @@ export function addAmbientBackground(
       ease: "Sine.InOut",
     });
     tweens.push(swayTween);
-
-    // Slow breathing glow.
-    const baseAlpha = dot.alpha;
-    const pulseTween = scene.tweens.add({
-      targets: dot,
-      alpha: Math.min(0.18, baseAlpha + 0.06),
-      scale: scale * Phaser.Math.FloatBetween(1.06, 1.28),
-      duration: Phaser.Math.Between(3500, 9000),
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.InOut",
-      delay: Phaser.Math.Between(0, 4000),
-    });
-    tweens.push(pulseTween);
+    // (Dropped the per-dot "breathing glow" pulse tween — it tripled the active
+    // tween count for a barely-visible effect, keeping the engine from ever
+    // idling. Drift + sway alone read as a live backdrop.)
   }
 
   // --- Vignette ---------------------------------------------------------

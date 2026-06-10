@@ -326,7 +326,7 @@ export class GameScene extends Phaser.Scene {
           .setDisplaySize(BOARD.cellSize, BOARD.cellSize)
           .setDepth(4);
         this.collectOverlays[r][c] = ov;
-        this.tweens.add({ targets: ov, scale: ov.scale * 1.06, duration: 700, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+        // (Idle pulse on the placed star removed — it sits static once on the board.)
 
         // Armored (layered) star: show how many layers remain.
         this.layerBadges[r][c]?.destroy();
@@ -465,8 +465,9 @@ export class GameScene extends Phaser.Scene {
         .setOrigin(0.5);
     }
 
-    // Booster + hint buttons — below the tray.
-    const by = DESIGN.height - 74;
+    // Booster + hint buttons — pushed to the bottom so there's a clear gap
+    // below the tray (otherwise a low grab on a piece taps a booster instead).
+    const by = DESIGN.height - 60;
     const cx = DESIGN.width / 2;
     this.hammerBtn = this.makeBooster(cx - 126, by, "ic_hammer", "hammer");
     this.bombBtn   = this.makeBooster(cx - 42,  by, "ic_bomb",   "bomb");
@@ -566,8 +567,11 @@ export class GameScene extends Phaser.Scene {
   private drawBadge(g: Phaser.GameObjects.Graphics, bY: number, count: number): void {
     g.clear();
     const bR = 13;
-    // Owned → green count badge; empty → accent "+" badge inviting a purchase.
-    const col = count > 0 ? UI.successInt : UI.accent;
+    // Owned → green count badge; empty → amber "+" badge inviting a purchase.
+    // (Amber, not the cyan brand accent: accent 0x2fe6c4 and successInt 0x2fcf7a
+    // are both cyan-greens that read as nearly the same badge. Amber clearly
+    // signals a different "tap to buy" state.)
+    const col = count > 0 ? UI.successInt : 0xffa62e;
     g.fillStyle(UI.shadow, 0.22).fillCircle(0, bY + 2, bR);
     g.fillStyle(col, 1).fillCircle(0, bY, bR);
     g.fillStyle(0xffffff, 0.3).fillEllipse(0, bY - 4, bR * 1.3, bR * 0.62);
@@ -774,20 +778,22 @@ export class GameScene extends Phaser.Scene {
     this.trayContainers[i] = container;
   }
 
-  private startBob(c: PieceContainer, i: number): void {
-    c.bob = this.tweens.add({
-      targets: c,
-      y: this.traySlotY() - 5,
-      duration: 1100 + i * 120,
-      ease: "Sine.inOut",
-      yoyo: true,
-      repeat: -1,
-    });
+  private startBob(c: PieceContainer, _i: number): void {
+    // Floating "bob" animation removed by design — tray pieces sit still at their
+    // home slot. (Kept as a no-op so the drag/hint/return-home call sites that
+    // re-arm it after their own tweens don't need to change.) Each piece used to
+    // own an infinite y-oscillation tween, so this also drops 3 always-running
+    // tweens from the render loop.
+    c.bob = undefined;
+    c.y = this.traySlotY();
   }
 
   private makePieceContainer(piece: Piece, trayIndex: number): PieceContainer {
     const { rows, cols } = piece.shape;
     const container = this.add.container(this.traySlotX(trayIndex), this.traySlotY()) as PieceContainer;
+    // Above the booster row (depth 8) so a grab on a piece wins the pointer over
+    // an overlapping booster hit area.
+    container.setDepth(10);
     for (const [dr, dc] of piece.shape.cells) {
       const lx = (dc - (cols - 1) / 2) * STEP;
       const ly = (dr - (rows - 1) / 2) * STEP;
@@ -813,15 +819,8 @@ export class GameScene extends Phaser.Scene {
         .setTint(0xffffff);
       container.addAt(glow, 0);
       container.add(ic);
-      this.tweens.add({
-        targets: ic,
-        displayWidth: 42,
-        displayHeight: 42,
-        duration: 460,
-        yoyo: true,
-        repeat: -1,
-        ease: "Sine.inOut",
-      });
+      // (Pulsing scale tween on the icon removed — the additive glow already
+      // reads as "charged" without an always-running animation.)
     }
     const w = cols * BOARD.cellSize + (cols - 1) * BOARD.gap;
     const h = rows * BOARD.cellSize + (rows - 1) * BOARD.gap;
@@ -1072,7 +1071,7 @@ export class GameScene extends Phaser.Scene {
         const ov = this.add.image(cell.x, cell.y, `collect_${att}`).setDisplaySize(BOARD.cellSize, BOARD.cellSize).setDepth(4);
         this.collectOverlays[r] = this.collectOverlays[r] ?? [];
         this.collectOverlays[r][c] = ov;
-        this.tweens.add({ targets: ov, scale: ov.scale * 1.06, duration: 700, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+        // (Idle pulse on the placed star removed — it sits static once on the board.)
         // Armored gem (carried with hits>1): add the frost overlay + "×N" badge.
         const hp = this.model.grid.health[r][c];
         if (hp > 1) {

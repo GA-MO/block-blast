@@ -17,7 +17,9 @@ export const BOARD_X = Math.round((DESIGN.width - BOARD_PX) / 2);
 export const BOARD_Y = 188;
 
 export const TRAY = {
-  y: BOARD_Y + BOARD_PX + 40,
+  // Sits a touch higher so the grab zone clears the booster row below it
+  // (pieces and boosters used to nearly touch, causing accidental booster taps).
+  y: BOARD_Y + BOARD_PX + 34,
   height: 150,
   scale: 0.62, // tray blocks are smaller than board blocks
 } as const;
