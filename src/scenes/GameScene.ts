@@ -55,6 +55,7 @@ interface PieceContainer extends Phaser.GameObjects.Container {
   piece: Piece;
   homeX: number;
   homeY: number;
+  homeScale: number;
   bob?: Phaser.Tweens.Tween;
 }
 
@@ -687,7 +688,7 @@ export class GameScene extends Phaser.Scene {
     const piece = this.model.tray[i];
     if (!piece || piece.used) return;
     const container = this.makePieceContainer(piece, i);
-    container.setScale(TRAY.scale);
+    container.setScale(container.homeScale);
     this.startBob(container, i);
     this.trayContainers[i] = container;
   }
@@ -744,13 +745,27 @@ export class GameScene extends Phaser.Scene {
     const w = cols * BOARD.cellSize + (cols - 1) * BOARD.gap;
     const h = rows * BOARD.cellSize + (rows - 1) * BOARD.gap;
     container.setSize(w, h);
+    // Wide pieces (e.g. 1×5 lines) at TRAY.scale overflow their slot and cover
+    // the neighbour piece — shrink them so they always fit inside one slot.
+    const slotW = BOARD_PX / 3;
+    const homeScale = Math.min(TRAY.scale, (slotW - 12) / w);
+    // Generous hit area: thin/small pieces are near-impossible to grab with a
+    // finger at exact bounds, so pad each side up to a minimum on-screen size
+    // (in design px, divided by scale because the hit area is in local space).
+    const MIN_HIT = 110;
+    const hitW = Math.max(w, MIN_HIT / homeScale);
+    const hitH = Math.max(h, MIN_HIT / homeScale);
     // Phaser localizes container hit-test points to the top-left origin.
-    container.setInteractive(new Phaser.Geom.Rectangle(0, 0, w, h), Phaser.Geom.Rectangle.Contains);
+    container.setInteractive(
+      new Phaser.Geom.Rectangle((w - hitW) / 2, (h - hitH) / 2, hitW, hitH),
+      Phaser.Geom.Rectangle.Contains,
+    );
     this.input.setDraggable(container);
     container.trayIndex = trayIndex;
     container.piece = piece;
     container.homeX = this.traySlotX(trayIndex);
     container.homeY = this.traySlotY();
+    container.homeScale = homeScale;
     return container;
   }
 
@@ -879,7 +894,7 @@ export class GameScene extends Phaser.Scene {
           targets: c,
           x: c.homeX,
           y: c.homeY,
-          scale: TRAY.scale,
+          scale: c.homeScale,
           duration: 160,
           ease: "Quad.out",
           onComplete: () => this.startBob(c, c.trayIndex),
@@ -1576,7 +1591,7 @@ export class GameScene extends Phaser.Scene {
       c.bob?.remove();
       this.tweens.add({
         targets: c,
-        scale: TRAY.scale * 1.18,
+        scale: c.homeScale * 1.18,
         duration: 200,
         yoyo: true,
         repeat: 2,

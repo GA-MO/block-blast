@@ -17,7 +17,9 @@ const game = new Phaser.Game({
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   render: { antialias: true, roundPixels: true, powerPreference: "high-performance" },
-  input: { activePointers: 1 },
+  // 3 touch pointers: a stray second finger resting on the screen must not
+  // steal or cancel the active drag (with 1, dragging intermittently fails).
+  input: { activePointers: 3 },
   disableContextMenu: true,
   scene: [BootScene, MenuScene, GameScene, ShopScene, LevelSelectScene],
 });
