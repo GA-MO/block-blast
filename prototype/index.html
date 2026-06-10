@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#3b4fd6" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>Block Blast</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="best">
+        <span class="crown">👑</span>
+        <span id="bestScore">0</span>
+      </div>
+      <button id="settingsBtn" class="icon-btn" aria-label="settings">⚙️</button>
+    </header>
+
+    <!-- Score -->
+    <div class="score-wrap">
+      <div id="score" class="score">0</div>
+      <div id="combo" class="combo"></div>
+    </div>
+
+    <!-- Board -->
+    <div class="board-wrap">
+      <div id="board" class="board"></div>
+      <div id="floatScores" class="float-scores"></div>
+    </div>
+
+    <!-- Tray -->
+    <div id="tray" class="tray"></div>
+  </div>
+
+  <!-- Game over overlay -->
+  <div id="gameOver" class="overlay hidden">
+    <div class="panel">
+      <div id="newBest" class="new-best hidden">NEW BEST</div>
+      <div class="panel-title">Game Over</div>
+      <div class="final-score" id="finalScore">0</div>
+      <div class="panel-best">Best: <span id="panelBest">0</span></div>
+      <button id="restartBtn" class="btn-primary">Play Again</button>
+    </div>
+  </div>
+
+  <!-- Drag layer -->
+  <div id="dragLayer"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>
