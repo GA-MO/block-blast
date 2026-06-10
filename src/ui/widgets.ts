@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { Sound } from "../systems/audio";
+import { UI } from "../config";
 
 export interface ButtonOpts {
   width?: number;
@@ -11,6 +12,8 @@ export interface ButtonOpts {
   iconKey?: string;
   /** Tint for the icon (defaults to the text color). */
   iconTint?: number;
+  /** Frosted translucent "glass" style instead of a solid colored fill. */
+  glass?: boolean;
   onClick?: () => void;
 }
 
@@ -24,21 +27,32 @@ export function makeButton(
 ): Phaser.GameObjects.Container {
   const w = opts.width ?? 220;
   const h = opts.height ?? 64;
-  const fill = opts.fill ?? 0xffc414;
-  const textColor = opts.textColor ?? "#2c1800";
+  const glass = opts.glass ?? false;
+  const fill = opts.fill ?? UI.accent;
+  const textColor = opts.textColor ?? (glass ? UI.textPrimary : UI.textOnAccent);
   const fontSize = opts.fontSize ?? 26;
+  const radius = 20;
 
   const c = scene.add.container(x, y);
   const g = scene.add.graphics();
   const draw = (offset: number) => {
     g.clear();
-    // Deep outer shadow (two layers for soft depth)
-    g.fillStyle(darken(fill, 0.28), 1).fillRoundedRect(-w / 2, -h / 2 + 9, w, h, 18);
-    g.fillStyle(darken(fill, 0.50), 1).fillRoundedRect(-w / 2, -h / 2 + 5, w, h, 18);
-    // Main face
-    g.fillStyle(fill, 1).fillRoundedRect(-w / 2, -h / 2 + offset, w, h, 18);
-    // Gloss strip — bright narrow highlight near top
-    g.fillStyle(0xffffff, 0.22).fillRoundedRect(-w / 2 + 8, -h / 2 + offset + 5, w - 16, h * 0.3, 12);
+    if (glass) {
+      // Dark frosted glass — same layered 3-D depth as the solid buttons (drop
+      // shadow + a two-tone bottom bevel) so every button reads the same height.
+      g.fillStyle(UI.shadow, 0.34).fillRoundedRect(-w / 2, -h / 2 + 9, w, h, radius);
+      g.fillStyle(0x0c1626, 1).fillRoundedRect(-w / 2, -h / 2 + 8, w, h, radius);
+      g.fillStyle(0x142339, 1).fillRoundedRect(-w / 2, -h / 2 + 4, w, h, radius);
+      g.fillStyle(UI.glass, 0.96).fillRoundedRect(-w / 2, -h / 2 + offset, w, h, radius);
+      g.fillStyle(0xffffff, 0.1).fillRoundedRect(-w / 2 + 8, -h / 2 + offset + 4, w - 16, h * 0.34, 14);
+      g.lineStyle(1.5, UI.glassStroke, 0.9).strokeRoundedRect(-w / 2 + 1, -h / 2 + offset + 1, w - 2, h - 2, radius - 1);
+      return;
+    }
+    // Solid colored button: soft colored bevel for depth, colored face, top gloss.
+    g.fillStyle(darken(fill, 0.58), 1).fillRoundedRect(-w / 2, -h / 2 + 8, w, h, radius);
+    g.fillStyle(darken(fill, 0.74), 1).fillRoundedRect(-w / 2, -h / 2 + 4, w, h, radius);
+    g.fillStyle(fill, 1).fillRoundedRect(-w / 2, -h / 2 + offset, w, h, radius);
+    g.fillStyle(0xffffff, 0.3).fillRoundedRect(-w / 2 + 8, -h / 2 + offset + 5, w - 16, h * 0.32, 13);
   };
   draw(0);
 
@@ -96,7 +110,7 @@ export function makePill(
   y: number,
   iconKey: string,
   value: string,
-  iconTint = 0xffc41a
+  iconTint: number = UI.accent
 ): { container: Phaser.GameObjects.Container; setValue: (v: string) => void } {
   const c = scene.add.container(x, y);
   const g = scene.add.graphics();
@@ -107,7 +121,7 @@ export function makePill(
     .text(0, 0, value, {
       fontFamily: "system-ui, sans-serif",
       fontSize: "22px",
-      color: "#ffffff",
+      color: UI.textPrimary,
       fontStyle: "bold",
     })
     .setOrigin(0, 0.5);
@@ -116,7 +130,10 @@ export function makePill(
     icon.setX(-pillW() / 2 + 14);
     valTxt.setX(icon.x + ICON + 8);
     g.clear();
-    g.fillStyle(0x000000, 0.22).fillRoundedRect(-pillW() / 2, -19, pillW(), 38, 19);
+    // Dark glass pill on the deep backdrop.
+    g.fillStyle(UI.shadow, 0.3).fillRoundedRect(-pillW() / 2, -17, pillW(), 38, 19);
+    g.fillStyle(UI.glass, 0.88).fillRoundedRect(-pillW() / 2, -19, pillW(), 38, 19);
+    g.lineStyle(1.4, UI.glassStroke, 0.85).strokeRoundedRect(-pillW() / 2 + 1, -18, pillW() - 2, 36, 18);
   };
   c.add([g, icon, valTxt]);
   layout();

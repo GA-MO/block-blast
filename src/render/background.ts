@@ -15,16 +15,20 @@ const DOT_COUNT = 34;
 /** Diameter (px) of the source soft-dot texture before scaling. */
 const DOT_TEX_SIZE = 96;
 
-/**
- * Lighten a packed 0xRRGGBB color toward white by `amount` (0..1).
- * Used to derive a soft tint for floating elements from the theme's top color.
- */
-function lighten(color: number, amount: number): number {
+/** Move a packed color toward black by `amount` (0..1). */
+function darken(color: number, amount: number): number {
   const c = Phaser.Display.Color.IntegerToColor(color);
-  const r = Math.round(c.red + (255 - c.red) * amount);
-  const g = Math.round(c.green + (255 - c.green) * amount);
-  const b = Math.round(c.blue + (255 - c.blue) * amount);
-  return Phaser.Display.Color.GetColor(r, g, b);
+  return Phaser.Display.Color.GetColor(
+    Math.round(c.red * (1 - amount)),
+    Math.round(c.green * (1 - amount)),
+    Math.round(c.blue * (1 - amount))
+  );
+}
+
+/** Perceived luminance (0..255) — used to pick a light vs dark backdrop mode. */
+function luminance(color: number): number {
+  const c = Phaser.Display.Color.IntegerToColor(color);
+  return 0.299 * c.red + 0.587 * c.green + 0.114 * c.blue;
 }
 
 /** Build the soft radial-gradient circle texture once per scene's texture cache. */
@@ -53,26 +57,36 @@ function ensureSoftDotTexture(scene: Phaser.Scene): void {
  * Build a full-screen vignette overlay: edge strips fade from dark to transparent,
  * so the center of the screen stays fully visible while corners darken.
  */
-function addVignette(scene: Phaser.Scene, width: number, height: number): Phaser.GameObjects.Graphics {
+function addVignette(
+  scene: Phaser.Scene,
+  width: number,
+  height: number,
+  light: boolean
+): Phaser.GameObjects.Graphics {
   const g = scene.add.graphics();
   g.setDepth(-7).setScrollFactor(0);
 
   const vW = width * 0.32;
   const vH = height * 0.22;
 
-  // Left edge: dark on left, transparent on right
+  if (light) {
+    // On the bright crystal backdrop a dark vignette would muddy it. Instead
+    // lay a soft white sheen across the top and a faint cool wash at the
+    // bottom so the screen reads as clean frosted glass.
+    g.fillGradientStyle(0xffffff, 0xffffff, 0xffffff, 0xffffff, 0.5, 0.5, 0, 0);
+    g.fillRect(0, 0, width, vH * 1.4);
+    g.fillGradientStyle(0x9fb6dd, 0x9fb6dd, 0x9fb6dd, 0x9fb6dd, 0, 0, 0.22, 0.22);
+    g.fillRect(0, height - vH, width, vH);
+    return g;
+  }
+
+  // Dark themes: classic darkened corners to frame the play area.
   g.fillGradientStyle(0x000000, 0x000000, 0x000000, 0x000000, 0.52, 0, 0.52, 0);
   g.fillRect(0, 0, vW, height);
-
-  // Right edge: transparent on left, dark on right
   g.fillGradientStyle(0x000000, 0x000000, 0x000000, 0x000000, 0, 0.52, 0, 0.52);
   g.fillRect(width - vW, 0, vW, height);
-
-  // Top edge: dark on top, transparent on bottom
   g.fillGradientStyle(0x000000, 0x000000, 0x000000, 0x000000, 0.55, 0.55, 0, 0);
   g.fillRect(0, 0, width, vH);
-
-  // Bottom edge: transparent on top, dark on bottom
   g.fillGradientStyle(0x000000, 0x000000, 0x000000, 0x000000, 0, 0, 0.48, 0.48);
   g.fillRect(0, height - vH, width, vH);
 
@@ -107,9 +121,12 @@ export function addAmbientBackground(
   gradient.setScrollFactor(0);
 
   // --- Floating bokeh layer ----------------------------------------------
-  // Use two tints: the base theme tint plus a slightly cooler/warmer variant
-  const tintBase = lighten(theme.bgTop, 0.55);
-  const tintWarm = lighten(theme.bgTop, 0.45);
+  // Light "crystal" themes get cool translucent shards drawn over the bright
+  // glass; dark themes keep the additive glowing bokeh.
+  const light = luminance(theme.bgBottom) > 150;
+  // Dark themes glow with aurora colors (mint-cyan + violet) via additive bokeh.
+  const tintBase = light ? darken(theme.bgBottom, 0.18) : 0x2bd9b0;
+  const tintWarm = light ? 0xffffff : 0x8a5cff;
   const dots: Phaser.GameObjects.Image[] = [];
   const tweens: Phaser.Tweens.Tween[] = [];
 
@@ -120,7 +137,7 @@ export function addAmbientBackground(
 
     dot.setDepth(-9);
     dot.setScrollFactor(0);
-    dot.setBlendMode(Phaser.BlendModes.ADD);
+    dot.setBlendMode(light ? Phaser.BlendModes.NORMAL : Phaser.BlendModes.ADD);
     // Alternate tint for variety
     dot.setTint(i % 5 === 0 ? tintWarm : tintBase);
 
@@ -130,7 +147,9 @@ export function addAmbientBackground(
       ? Phaser.Math.FloatBetween(1.4, 2.2)
       : Phaser.Math.FloatBetween(0.22, 1.1);
     dot.setScale(scale);
-    dot.setAlpha(isLarge ? Phaser.Math.FloatBetween(0.03, 0.06) : Phaser.Math.FloatBetween(0.05, 0.16));
+    const dimFloor = light ? 0.04 : 0.03;
+    const dimCeil = light ? 0.18 : 0.16;
+    dot.setAlpha(isLarge ? Phaser.Math.FloatBetween(dimFloor, dimFloor + 0.03) : Phaser.Math.FloatBetween(dimFloor + 0.01, dimCeil));
 
     dots.push(dot);
 
@@ -178,7 +197,7 @@ export function addAmbientBackground(
   }
 
   // --- Vignette ---------------------------------------------------------
-  const vignette = addVignette(scene, width, height);
+  const vignette = addVignette(scene, width, height, light);
 
   let destroyed = false;
   return {

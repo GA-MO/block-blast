@@ -38,7 +38,7 @@ describe("themes - skins", () => {
   });
 
   it("getSkin returns the matching skin and falls back to default", () => {
-    expect(getSkin("neon").id).toBe("neon");
+    expect(getSkin("aurora").id).toBe("aurora");
     expect(getSkin("does-not-exist").id).toBe(DEFAULT_SKIN_ID);
   });
 });
@@ -56,7 +56,7 @@ describe("themes - board themes", () => {
   });
 
   it("getTheme returns the matching theme and falls back to default", () => {
-    expect(getTheme("midnight").id).toBe("midnight");
+    expect(getTheme("nebula").id).toBe("nebula");
     expect(getTheme("nope").id).toBe(DEFAULT_THEME_ID);
   });
 });

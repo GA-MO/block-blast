@@ -1,7 +1,7 @@
-# Block Blast — Game Design Document
+# Tessera — Game Design Document
 
 > Status: living document. Updated as design evolves.
-> Genre: casual block-placement puzzle (1010!/Block Blast lineage).
+> Genre: casual block-placement puzzle (1010! lineage).
 > Platform: mobile web first → PWA → Capacitor (App Store / Play Store).
 
 ---

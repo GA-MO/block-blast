@@ -3,7 +3,6 @@ import { DESIGN, THEME } from "./config";
 import { BootScene } from "./scenes/BootScene";
 import MenuScene from "./scenes/MenuScene";
 import { GameScene } from "./scenes/GameScene";
-import ShopScene from "./scenes/ShopScene";
 import LevelSelectScene from "./scenes/LevelSelectScene";
 
 const game = new Phaser.Game({
@@ -21,7 +20,7 @@ const game = new Phaser.Game({
   // steal or cancel the active drag (with 1, dragging intermittently fails).
   input: { activePointers: 3 },
   disableContextMenu: true,
-  scene: [BootScene, MenuScene, GameScene, ShopScene, LevelSelectScene],
+  scene: [BootScene, MenuScene, GameScene, LevelSelectScene],
 });
 
 // Debug handle (used by automated tests; harmless in prod).

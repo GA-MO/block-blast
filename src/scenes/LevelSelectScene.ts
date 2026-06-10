@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { DESIGN } from "../config";
+import { DESIGN, UI } from "../config";
 import { darken } from "../ui/widgets";
 import { getLevel } from "../data/levels";
 import { Storage } from "../systems/storage";
@@ -9,9 +9,9 @@ import { addAmbientBackground } from "../render/background";
 import { Sound } from "../systems/audio";
 
 /** Tile colour by state. */
-const COLOR_COMPLETED = 0x4ec76b; // greenish (stars > 0)
-const COLOR_UNLOCKED = 0x4db8ff; // blue (unlocked, unplayed)
-const COLOR_LOCKED = 0x53597a; // grey
+const COLOR_COMPLETED = 0x22c46b; // emerald (cleared)
+const COLOR_UNLOCKED = 0x2aa6ff; // sapphire (unlocked, unplayed)
+const COLOR_LOCKED = 0x2a3650; // dark slate (locked)
 
 /** Pagination geometry. */
 const COLS = 3;
@@ -46,7 +46,7 @@ export default class LevelSelectScene extends Phaser.Scene {
     const back = this.add
       .image(28, 48, "ic_back")
       .setDisplaySize(40, 40)
-      .setTint(0xffffff)
+      .setTint(UI.accent)
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
     back.on("pointerup", () => {
@@ -58,11 +58,10 @@ export default class LevelSelectScene extends Phaser.Scene {
       .text(DESIGN.width / 2, 64, "Adventure", {
         fontFamily: "system-ui, sans-serif",
         fontSize: "44px",
-        color: "#ffffff",
+        color: UI.textPrimary,
         fontStyle: "900",
       })
-      .setOrigin(0.5)
-      .setShadow(0, 4, "rgba(0,0,0,0.45)", 6, true, true);
+      .setOrigin(0.5);
 
     // ---- Page controls (built once; grid re-rendered on change) ------------
     const ctrlY = 892;
@@ -70,11 +69,10 @@ export default class LevelSelectScene extends Phaser.Scene {
       .text(70, ctrlY, "‹ Prev", {
         fontFamily: "system-ui, sans-serif",
         fontSize: "30px",
-        color: "#ffffff",
+        color: UI.accentText,
         fontStyle: "800",
       })
       .setOrigin(0.5)
-      .setShadow(0, 3, "rgba(0,0,0,0.4)", 4, true, true)
       .setInteractive({ useHandCursor: true });
     this.prevText.on("pointerup", () => {
       if (this.page <= 0) return;
@@ -87,11 +85,10 @@ export default class LevelSelectScene extends Phaser.Scene {
       .text(DESIGN.width - 70, ctrlY, "Next ›", {
         fontFamily: "system-ui, sans-serif",
         fontSize: "30px",
-        color: "#ffffff",
+        color: UI.accentText,
         fontStyle: "800",
       })
       .setOrigin(0.5)
-      .setShadow(0, 3, "rgba(0,0,0,0.4)", 4, true, true)
       .setInteractive({ useHandCursor: true });
     nextText.on("pointerup", () => {
       Sound.button(); // Next is always available (infinite levels).
@@ -103,7 +100,7 @@ export default class LevelSelectScene extends Phaser.Scene {
       .text(DESIGN.width / 2, ctrlY, "", {
         fontFamily: "system-ui, sans-serif",
         fontSize: "24px",
-        color: "#c8cce0",
+        color: UI.textMuted,
         fontStyle: "700",
       })
       .setOrigin(0.5);
@@ -205,18 +202,18 @@ export default class LevelSelectScene extends Phaser.Scene {
       .text(0, -8, String(id), {
         fontFamily: "system-ui, sans-serif",
         fontSize: "46px",
-        color: locked ? "#c8cce0" : "#ffffff",
+        color: locked ? "#6b7ba3" : "#ffffff",
         fontStyle: "900",
       })
       .setOrigin(0.5)
-      .setShadow(0, 3, "rgba(0,0,0,0.4)", 4, true, true);
+      .setShadow(0, 2, "rgba(0,0,0,0.4)", 4, true, true);
     c.add(idTxt);
 
     if (locked) {
       const lock = this.add
         .image(0, 30, "ic_lock")
         .setDisplaySize(28, 28)
-        .setTint(0xaab0d0)
+        .setTint(0x6b7ba3)
         .setOrigin(0.5);
       c.add(lock);
       c.setAlpha(0.92);

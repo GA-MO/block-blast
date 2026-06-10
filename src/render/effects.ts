@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { DESIGN } from "../config";
 
 /**
- * Reusable visual-effects module for Block Blast.
+ * Reusable visual-effects module for Tessera.
  *
  * Every effect is self-contained: it creates its own display objects /
  * emitters and destroys them when the animation completes. No game-logic

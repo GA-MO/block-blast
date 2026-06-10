@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { DESIGN } from "../config";
+import { DESIGN, UI } from "../config";
 import { Settings, type SettingsData } from "../systems/settings";
 import { Sound } from "../systems/audio";
 import { makeButton } from "./widgets";
@@ -9,7 +9,7 @@ export function openSettings(scene: Phaser.Scene): void {
   const layer = scene.add.container(0, 0).setDepth(300);
 
   const dim = scene.add
-    .rectangle(0, 0, DESIGN.width, DESIGN.height, 0x050310, 0.65)
+    .rectangle(0, 0, DESIGN.width, DESIGN.height, 0x000000, 0.55)
     .setOrigin(0)
     .setInteractive();
   layer.add(dim);
@@ -20,14 +20,13 @@ export function openSettings(scene: Phaser.Scene): void {
   const py = (DESIGN.height - ph) / 2;
   const panel = scene.add.graphics();
   // Drop shadow
-  panel.fillStyle(0x000000, 0.5).fillRoundedRect(px - 2, py + 12, pw + 4, ph, 28);
-  panel.fillStyle(0x000000, 0.3).fillRoundedRect(px, py + 6, pw, ph, 26);
-  // Panel body (dark indigo)
-  panel.fillStyle(0x1e1870, 1).fillRoundedRect(px, py, pw, ph, 24);
+  panel.fillStyle(UI.shadow, 0.3).fillRoundedRect(px - 2, py + 12, pw + 4, ph, 28);
+  // Dark glass panel body
+  panel.fillStyle(UI.glass, 0.98).fillRoundedRect(px, py, pw, ph, 24);
   // Subtle top-half gloss
-  panel.fillStyle(0xffffff, 0.05).fillRoundedRect(px, py, pw, ph * 0.45, 24);
+  panel.fillStyle(0xffffff, 0.07).fillRoundedRect(px + 3, py + 3, pw - 6, ph * 0.4, 22);
   // Inner highlight border
-  panel.lineStyle(1.5, 0xffffff, 0.18).strokeRoundedRect(px + 1, py + 1, pw - 2, ph - 2, 23);
+  panel.lineStyle(1.5, UI.glassStroke, 0.9).strokeRoundedRect(px + 1, py + 1, pw - 2, ph - 2, 23);
   layer.add(panel);
 
   layer.add(
@@ -35,11 +34,10 @@ export function openSettings(scene: Phaser.Scene): void {
       .text(DESIGN.width / 2, py + 44, "Settings", {
         fontFamily: "system-ui, sans-serif",
         fontSize: "32px",
-        color: "#fff",
+        color: UI.textPrimary,
         fontStyle: "900",
       })
       .setOrigin(0.5)
-      .setShadow(0, 3, "rgba(0,0,0,0.5)", 5, false, true)
   );
 
   const rows: { key: keyof SettingsData; label: string; icon: string }[] = [
@@ -50,13 +48,13 @@ export function openSettings(scene: Phaser.Scene): void {
 
   rows.forEach((row, i) => {
     const ry = py + 100 + i * 60;
-    layer.add(scene.add.image(px + 44, ry, row.icon).setDisplaySize(26, 26).setTint(0xffffff));
+    layer.add(scene.add.image(px + 44, ry, row.icon).setDisplaySize(26, 26).setTint(UI.accent));
     layer.add(
       scene.add
         .text(px + 68, ry, row.label, {
           fontFamily: "system-ui, sans-serif",
           fontSize: "24px",
-          color: "#fff",
+          color: UI.textPrimary,
         })
         .setOrigin(0, 0.5)
     );
@@ -95,9 +93,9 @@ function makeToggle(
   const knob = scene.add.circle(0, 0, 13, 0xffffff);
   const draw = () => {
     g.clear();
-    g.fillStyle(on ? 0x1fc952 : 0x3a3470, 1).fillRoundedRect(-w / 2, -h / 2, w, h, h / 2);
+    g.fillStyle(on ? UI.accent : 0x2a3650, 1).fillRoundedRect(-w / 2, -h / 2, w, h, h / 2);
     // Gloss top strip
-    g.fillStyle(0xffffff, on ? 0.2 : 0.1).fillRoundedRect(-w / 2 + 3, -h / 2 + 3, w - 6, h * 0.38, h / 2);
+    g.fillStyle(0xffffff, on ? 0.3 : 0.12).fillRoundedRect(-w / 2 + 3, -h / 2 + 3, w - 6, h * 0.38, h / 2);
     knob.setX(on ? w / 2 - 16 : -w / 2 + 16);
   };
   draw();

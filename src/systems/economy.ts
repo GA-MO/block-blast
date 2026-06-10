@@ -1,5 +1,5 @@
 /** Persisted player economy: coins, owned/equipped cosmetics, boosters. */
-const KEY = "blockblast.economy";
+const KEY = "tessera.economy";
 
 export type BoosterKind = "revive" | "hammer" | "swap" | "bomb";
 export type CosmeticKind = "skin" | "theme";
@@ -21,8 +21,10 @@ const DEFAULTS: EconomyData = {
   ownedThemes: ["default"],
   equippedSkin: "default",
   equippedTheme: "default",
-  // A couple of free bombs so the new booster is discoverable.
-  boosters: { revive: 0, hammer: 0, swap: 0, bomb: 2 },
+  // One free of each active booster so new players can try them all (the
+  // standalone shop was removed — boosters are now bought in-run). Revive is
+  // ad-based, so it starts at 0.
+  boosters: { revive: 0, hammer: 1, swap: 1, bomb: 1 },
 };
 
 class EconomyStore {

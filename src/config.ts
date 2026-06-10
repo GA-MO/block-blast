@@ -37,24 +37,64 @@ export const HUD = {
   objectiveY: 152,
 } as const;
 
-/** Block colors (Phaser hex ints). Index = color id used by the model. */
+/** Crystal block colors (Phaser hex ints). Index = color id used by the model.
+ *  Bright jewel tones tuned to read clearly on the light glass backdrop. */
 export const COLORS: number[] = [
-  0xff2d56, // ruby red
-  0xff8020, // deep amber
-  0xffcc14, // rich gold
-  0x1fc952, // emerald
-  0x0ea5f0, // sapphire
-  0xa055f5, // amethyst
-  0x05cac0, // aquamarine
+  0xff3b6e, // rose quartz
+  0xff8a2b, // amber citrine
+  0xffc81f, // topaz
+  0x22c46b, // emerald
+  0x2aa6ff, // sapphire
+  0x9d5cf5, // amethyst
+  0x18c6c0, // aquamarine
 ];
 
+/**
+ * Dark "deep space / aurora" theme. Near-black space gradient with light text
+ * and an aurora cyan-green brand accent (deliberately NOT the purple+gold of
+ * Block Blast). Vibrant gem blocks glow against the dark backdrop.
+ */
 export const THEME = {
-  bgTop: 0x1a1060,
-  bgBottom: 0x08052a,
-  boardBg: 0x100840,
-  slot: 0x1e1650,
-  text: "#ffffff",
-  gold: "#ffc41a",
+  bgTop: 0x112138, // deep space blue
+  bgBottom: 0x05070f, // near-black
+  boardBg: 0x0c1626, // dark board panel
+  slot: 0x16223a, // recessed cell
+  text: "#eaf2ff",
+  gold: "#34e6c2", // legacy alias → aurora accent
+} as const;
+
+/**
+ * Shared UI design tokens for the deep-space / aurora identity. Centralised so
+ * every scene pulls the same text colors, accent and glass surfaces.
+ */
+export const UI = {
+  /** Primary heading / body text on the dark backdrop. */
+  textPrimary: "#eaf2ff",
+  /** Secondary / supporting text. */
+  textSecondary: "#9fb2d4",
+  /** Muted captions, disabled state, page hints. */
+  textMuted: "#6b7ba3",
+  /** Brand accent (aurora cyan-green) as hex int. */
+  accent: 0x2fe6c4,
+  accentDark: 0x14b89a,
+  /** Accent as a css string for text. */
+  accentText: "#3df0cc",
+  /** Secondary aurora glow (violet) for accents/particles. */
+  accent2: 0xb15cff,
+  accent2Int: 0xb15cff,
+  /** Text sitting on top of a bright accent fill (dark, for contrast). */
+  textOnAccent: "#04231d",
+  /** Dark "glass" panel base (use with mid alpha) + cool border + gloss. */
+  glass: 0x182a45,
+  glassFill: 0x1d3150,
+  glassStroke: 0x3f5d8a,
+  glassHi: 0xffffff,
+  /** Shadow color for depth (black on the dark backdrop). */
+  shadow: 0x000000,
+  danger: "#ff5b7a",
+  dangerInt: 0xff5b7a,
+  success: "#3fe08a",
+  successInt: 0x2fcf7a,
 } as const;
 
 /** Per-collectible visual metadata: fill color, dark outline, and star points. */
@@ -68,7 +108,7 @@ export const COLLECTIBLE_META: Record<string, { color: number; outline: number; 
 export const TEX_RES = 2;
 
 export const STORAGE_KEYS = {
-  best: "blockblast.best",
+  best: "tessera.best",
 } as const;
 
 /** Center pixel of board cell (row, col). */

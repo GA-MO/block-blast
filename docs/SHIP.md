@@ -1,6 +1,6 @@
-# Block Blast — Release Runbook (SHIP.md)
+# Tessera — Release Runbook (SHIP.md)
 
-This is the practical, end-to-end guide for shipping **Block Blast** (Phaser +
+This is the practical, end-to-end guide for shipping **Tessera** (Phaser +
 TypeScript + Vite) as:
 
 1. a **web / PWA** build (static hosting), and
@@ -55,8 +55,8 @@ npm i @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android
 
 ### 2.2 Initialize
 
-`capacitor.config.ts` is **already configured** (appId `com.blockblast.game`,
-appName "Block Blast", `webDir: dist`). If you run `npx cap init` it will pick
+`capacitor.config.ts` is **already configured** (appId `com.tessera.game`,
+appName "Tessera", `webDir: dist`). If you run `npx cap init` it will pick
 up that file; you generally only need to add the native platforms:
 
 ```bash
@@ -64,7 +64,7 @@ npx cap add ios
 npx cap add android
 ```
 
-> **App id is a placeholder.** `com.blockblast.game` must be replaced with an
+> **App id is a placeholder.** `com.tessera.game` must be replaced with an
 > identifier you own/registered in App Store Connect and Play Console. Update
 > `appId` in `capacitor.config.ts` before adding platforms.
 
@@ -183,6 +183,6 @@ Then:
       - Declare purchase data collection for IAP.
 - [ ] Confirm the **privacy policy URL** is live and linked.
 - [ ] Confirm `appId` in `capacitor.config.ts` matches the registered bundle
-      id (not the `com.blockblast.game` placeholder).
+      id (not the `com.tessera.game` placeholder).
 - [ ] Submit for review; respond to any store metadata requests.
 ```

@@ -39,12 +39,12 @@ interface CapacitorConfigShape {
 }
 
 const config: CapacitorConfigShape = {
-  // TODO: `com.blockblast.game` is a PLACEHOLDER. Register your own
+  // TODO: `com.tessera.game` is a PLACEHOLDER. Register your own
   // reverse-DNS identifier in App Store Connect / Play Console and update here.
-  appId: "com.blockblast.game",
-  appName: "Block Blast",
+  appId: "com.tessera.game",
+  appName: "Tessera",
   webDir: "dist",
-  backgroundColor: "#0e1320",
+  backgroundColor: "#05070f",
   server: {
     androidScheme: "https",
     iosScheme: "https",
@@ -55,7 +55,7 @@ const config: CapacitorConfigShape = {
     SplashScreen: {
       launchShowDuration: 1200,
       launchAutoHide: true,
-      backgroundColor: "#0e1320",
+      backgroundColor: "#05070f",
       showSpinner: false,
       androidScaleType: "CENTER_CROP",
       splashFullScreen: true,

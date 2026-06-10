@@ -1,5 +1,5 @@
 /** Achievement definitions, pure evaluation, and a persisted tracker. */
-const KEY = "blockblast.achievements";
+const KEY = "tessera.achievements";
 
 export interface Stats {
   bestScore: number;

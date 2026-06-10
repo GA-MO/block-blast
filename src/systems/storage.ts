@@ -2,11 +2,11 @@ import { STORAGE_KEYS } from "../config";
 
 const KEYS = {
   best: STORAGE_KEYS.best,
-  bestRush: "blockblast.best.rush",
-  daily: "blockblast.daily", // { [dateKey]: bestScore }
-  dailyStreak: "blockblast.dailyStreak", // { lastKey, count }
-  levelStars: "blockblast.levelStars", // { [levelId]: stars }
-  lifetime: "blockblast.lifetime", // aggregate stats for achievements
+  bestRush: "tessera.best.rush",
+  daily: "tessera.daily", // { [dateKey]: bestScore }
+  dailyStreak: "tessera.dailyStreak", // { lastKey, count }
+  levelStars: "tessera.levelStars", // { [levelId]: stars }
+  lifetime: "tessera.lifetime", // aggregate stats for achievements
 };
 
 function readJSON<T>(key: string, fallback: T): T {

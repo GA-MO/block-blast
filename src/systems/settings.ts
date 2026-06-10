@@ -1,5 +1,5 @@
 /** Persisted user preferences (sound/music/haptics). */
-const KEY = "blockblast.settings";
+const KEY = "tessera.settings";
 
 export interface SettingsData {
   music: boolean;

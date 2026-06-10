@@ -1,4 +1,4 @@
-# Block Blast
+# Tessera
 
 A satisfying, juicy block-placement puzzle for mobile web (Phaser 3 + TypeScript + Vite).
 Drop pieces on an 8×8 board, clear full rows/columns, chase combos.

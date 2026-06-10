@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
 /**
- * Procedural vector icon set for the Block Blast UI.
+ * Procedural vector icon set for the Tessera UI.
  *
  * Every icon is drawn in solid white (0xffffff) on a transparent background,
  * centered inside a SIZE x SIZE box with ~10% padding, then baked into a

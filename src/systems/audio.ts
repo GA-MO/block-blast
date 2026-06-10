@@ -1,5 +1,5 @@
 /**
- * Procedural WebAudio sound system for Block Blast.
+ * Procedural WebAudio sound system for Tessera.
  *
  * All sounds are synthesised at runtime with oscillators + gain envelopes —
  * there are no external audio asset files. Exposed as the `Sound` singleton.

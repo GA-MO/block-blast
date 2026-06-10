@@ -8,6 +8,7 @@ import {
   DESIGN,
   HUD,
   TRAY,
+  UI,
   cellCenter,
   cellTopLeft,
 } from "../config";
@@ -27,6 +28,7 @@ import { Analytics } from "../systems/analytics";
 import { Ads } from "../systems/ads";
 import { Settings } from "../systems/settings";
 import { getSkin, getTheme } from "../data/themes";
+import { BOOSTER_META } from "../data/boosters";
 import { getLevel, type Level } from "../data/levels";
 import { ensureTextures } from "../render/textures";
 import { addAmbientBackground } from "../render/background";
@@ -242,16 +244,16 @@ export class GameScene extends Phaser.Scene {
   private drawBoard(): void {
     const bg = this.add.graphics();
     // Outer drop shadow (soft, offset down)
-    bg.fillStyle(0x000000, 0.4);
-    bg.fillRoundedRect(BOARD_X - 2, BOARD_Y + 8, BOARD_PX + 4, BOARD_PX + 4, 20);
+    bg.fillStyle(UI.shadow, 0.16);
+    bg.fillRoundedRect(BOARD_X - 2, BOARD_Y + 10, BOARD_PX + 4, BOARD_PX + 4, 20);
     // Secondary shadow layer (closer)
-    bg.fillStyle(0x000000, 0.25);
-    bg.fillRoundedRect(BOARD_X, BOARD_Y + 4, BOARD_PX, BOARD_PX + 2, 18);
+    bg.fillStyle(UI.shadow, 0.1);
+    bg.fillRoundedRect(BOARD_X, BOARD_Y + 5, BOARD_PX, BOARD_PX + 2, 18);
     // Board panel
     bg.fillStyle(this.themeColors.boardBg, 1);
     bg.fillRoundedRect(BOARD_X, BOARD_Y, BOARD_PX, BOARD_PX, 16);
-    // Subtle inner highlight at top edge
-    bg.lineStyle(1.5, 0xffffff, 0.07);
+    // Cool frosted border to define the glass panel
+    bg.lineStyle(1.5, UI.glassStroke, 0.85);
     bg.strokeRoundedRect(BOARD_X + 1, BOARD_Y + 1, BOARD_PX - 2, BOARD_PX - 2, 15);
     for (let r = 0; r < BOARD.cells; r++) {
       this.boardCells[r] = [];
@@ -350,6 +352,7 @@ export class GameScene extends Phaser.Scene {
     const back = this.add
       .image(32, y, "ic_back")
       .setDisplaySize(28, 28)
+      .setTint(UI.accent)
       .setInteractive({ useHandCursor: true });
     back.on("pointerup", () => {
       Sound.button();
@@ -372,23 +375,24 @@ export class GameScene extends Phaser.Scene {
     }
     let textX = 56;
     if (badgeIcon) {
-      this.add.image(66, y, badgeIcon).setDisplaySize(22, 22).setTint(0xffd84d);
+      this.add.image(66, y, badgeIcon).setDisplaySize(22, 22).setTint(UI.accent);
       textX = 84;
     }
     this.bestText = this.add
       .text(textX, y, badgeText, {
         fontFamily: "system-ui, sans-serif",
         fontSize: "21px",
-        color: "#ffd84d",
+        color: UI.accentText,
         fontStyle: "bold",
       })
       .setOrigin(0, 0.5);
 
     // Coins (top-right) + settings gear (corner)
-    this.coinPill = makePill(this, DESIGN.width - 132, y, "ic_coin", String(Economy.getCoins()));
+    this.coinPill = makePill(this, DESIGN.width - 132, y, "ic_coin", String(Economy.getCoins()), 0xffc94d);
     const gear = this.add
       .image(DESIGN.width - 34, y, "ic_gear")
       .setDisplaySize(30, 30)
+      .setTint(UI.accent)
       .setInteractive({ useHandCursor: true });
     gear.on("pointerup", () => openSettings(this));
 
@@ -399,9 +403,9 @@ export class GameScene extends Phaser.Scene {
         .text(DESIGN.width / 2, y, "", {
           fontFamily: "system-ui, sans-serif",
           fontSize: "18px",
-          color: "#cfd6ff",
+          color: UI.textPrimary,
           fontStyle: "bold",
-          backgroundColor: "#00000033",
+          backgroundColor: "rgba(0,0,0,0.32)",
           padding: { x: 12, y: 4 },
         })
         .setOrigin(0.5);
@@ -413,9 +417,9 @@ export class GameScene extends Phaser.Scene {
         .text(DESIGN.width / 2, y, "2:00", {
           fontFamily: "system-ui, sans-serif",
           fontSize: "22px",
-          color: "#cfd6ff",
+          color: UI.textPrimary,
           fontStyle: "900",
-          backgroundColor: "#00000033",
+          backgroundColor: "rgba(0,0,0,0.32)",
           padding: { x: 14, y: 4 },
         })
         .setOrigin(0.5);
@@ -426,24 +430,25 @@ export class GameScene extends Phaser.Scene {
       .text(DESIGN.width / 2, HUD.scoreY, "0", {
         fontFamily: "system-ui, sans-serif",
         fontSize: `${HUD.scoreFont}px`,
-        color: "#fff",
+        color: UI.textPrimary,
         fontStyle: "900",
       })
-      .setOrigin(0.5)
-      .setShadow(0, 4, "#1a1f4d", 0, true, true);
+      .setOrigin(0.5);
+    // Smooth GPU glow instead of the patchy canvas shadow blur.
+    this.scoreText.preFX?.addGlow(0x34e6c2, 1.2, 0, false, 0.1, 8);
 
     // ---- Combo banner — flashes over the board centre (never crowds the top) ----
     this.comboText = this.add
       .text(DESIGN.width / 2, BOARD_Y + BOARD_PX / 2, "", {
         fontFamily: "system-ui, sans-serif",
         fontSize: "36px",
-        color: "#ffc41a",
+        color: "#3df0cc",
         fontStyle: "900",
       })
       .setOrigin(0.5)
       .setDepth(9)
-      .setStroke("#3a1e00", 6)
-      .setShadow(0, 4, "rgba(0,0,0,0.65)", 8, false, true)
+      .setStroke("#ffffff", 6)
+      .setShadow(0, 4, "rgba(44,60,102,0.35)", 8, false, true)
       .setAlpha(0);
 
     // ---- Objective row (single line at HUD.objectiveY) ----
@@ -454,11 +459,10 @@ export class GameScene extends Phaser.Scene {
         .text(DESIGN.width / 2, HUD.objectiveY, "", {
           fontFamily: "system-ui, sans-serif",
           fontSize: "20px",
-          color: "#ffffff",
+          color: UI.textPrimary,
           fontStyle: "bold",
         })
-        .setOrigin(0.5)
-        .setShadow(0, 2, "rgba(0,0,0,0.4)", 2);
+        .setOrigin(0.5);
     }
 
     // Booster + hint buttons — below the tray.
@@ -482,13 +486,14 @@ export class GameScene extends Phaser.Scene {
   private buildChargeMeter(): void {
     const { x, y, w, h } = this.chargeGeom();
     const bg = this.add.graphics().setDepth(7);
-    bg.fillStyle(0x000000, 0.35).fillRoundedRect(x - 2, y - 2, w + 4, h + 4, 7);
-    bg.fillStyle(0x141040, 1).fillRoundedRect(x, y, w, h, 5);
+    bg.fillStyle(UI.shadow, 0.35).fillRoundedRect(x - 2, y - 2, w + 4, h + 4, 7);
+    bg.fillStyle(UI.glass, 1).fillRoundedRect(x, y, w, h, 5);
+    bg.lineStyle(1, UI.glassStroke, 0.6).strokeRoundedRect(x, y, w, h, 5);
     this.chargeFill = this.add.graphics().setDepth(8);
     this.chargeIcon = this.add
       .image(x - 18, y + h / 2, "ic_bolt")
       .setDisplaySize(22, 22)
-      .setTint(0x6f6aa8)
+      .setTint(0x6b7ba3)
       .setDepth(8);
     this.updateChargeMeter();
   }
@@ -502,14 +507,14 @@ export class GameScene extends Phaser.Scene {
     this.chargeFill.clear();
     if (p > 0) {
       const fw = Math.max(10, w * p);
-      this.chargeFill.fillStyle(ready ? 0xffc41a : 0x30c8ff, 1).fillRoundedRect(x, y, fw, h, 5);
-      this.chargeFill.fillStyle(0xffffff, 0.25).fillRoundedRect(x + 2, y + 1, fw - 4, h * 0.45, 3);
+      this.chargeFill.fillStyle(ready ? UI.accent : 0x2aa6ff, 1).fillRoundedRect(x, y, fw, h, 5);
+      this.chargeFill.fillStyle(0xffffff, 0.4).fillRoundedRect(x + 2, y + 1, fw - 4, h * 0.45, 3);
     }
-    this.chargeIcon.setTint(ready ? 0xffc41a : 0x6f6aa8);
+    this.chargeIcon.setTint(ready ? UI.accent : 0x6b7ba3);
     if (ready && !this.chargeWasReady) {
       this.toast("Power Block charged!");
       Sound.combo(5);
-      impactRing(this, x + w / 2, y + h / 2, 0xffc41a, 70);
+      impactRing(this, x + w / 2, y + h / 2, UI.accent, 70);
       this.tweens.add({
         targets: this.chargeIcon,
         displayWidth: 30,
@@ -528,7 +533,7 @@ export class GameScene extends Phaser.Scene {
     const left = Math.max(0, this.rushEndsAt - this.time.now);
     const s = Math.ceil(left / 1000);
     this.rushText.setText(`${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`);
-    this.rushText.setColor(s <= 10 ? "#ff6b6b" : "#cfd6ff");
+    this.rushText.setColor(s <= 10 ? UI.danger : UI.textPrimary);
     if (left <= 0) {
       this.model.over = true;
       this.endGame();
@@ -541,19 +546,19 @@ export class GameScene extends Phaser.Scene {
     const lift = pressed ? 0 : 5;
     const faceY = pressed ? 5 : 0;
     // Outer drop-shadow
-    g.fillStyle(0x000000, pressed ? 0.15 : 0.38);
+    g.fillStyle(UI.shadow, pressed ? 0.2 : 0.4);
     g.fillRoundedRect(-S / 2 + 2, -S / 2 + lift + 6, S - 2, S, R + 2);
-    // Deep base — creates the 3-D floor illusion
-    g.fillStyle(0x06041a, 1);
+    // Recessed base — darker floor for a raised 3-D look
+    g.fillStyle(0x0a1322, 1);
     g.fillRoundedRect(-S / 2, -S / 2 + lift, S, S, R);
-    // Main face (dark indigo, matches modal/panel language)
-    g.fillStyle(0x2a2090, 1);
+    // Main face (dark glass)
+    g.fillStyle(UI.glass, 1);
     g.fillRoundedRect(-S / 2, -S / 2 + faceY, S, S, R);
     // Top gloss strip
-    g.fillStyle(0xffffff, 0.16);
+    g.fillStyle(0xffffff, 0.12);
     g.fillRoundedRect(-S / 2 + 5, -S / 2 + faceY + 5, S - 10, S * 0.38, R * 0.65);
-    // Thin inner highlight border
-    g.lineStyle(1.5, 0xffffff, 0.18);
+    // Thin cool border
+    g.lineStyle(1.5, UI.glassStroke, 0.9);
     g.strokeRoundedRect(-S / 2 + 1, -S / 2 + faceY + 1, S - 2, S - 2, R - 1);
   }
 
@@ -561,10 +566,11 @@ export class GameScene extends Phaser.Scene {
   private drawBadge(g: Phaser.GameObjects.Graphics, bY: number, count: number): void {
     g.clear();
     const bR = 13;
-    const col = count > 0 ? 0x1fc952 : 0x4a4270;
-    g.fillStyle(0x000000, 0.28).fillCircle(0, bY + 2, bR);
+    // Owned → green count badge; empty → accent "+" badge inviting a purchase.
+    const col = count > 0 ? UI.successInt : UI.accent;
+    g.fillStyle(UI.shadow, 0.22).fillCircle(0, bY + 2, bR);
     g.fillStyle(col, 1).fillCircle(0, bY, bR);
-    g.fillStyle(0xffffff, 0.24).fillEllipse(0, bY - 4, bR * 1.3, bR * 0.62);
+    g.fillStyle(0xffffff, 0.3).fillEllipse(0, bY - 4, bR * 1.3, bR * 0.62);
   }
 
   /** Wooden-square hint button (no count badge, icon fades during cooldown). */
@@ -574,7 +580,7 @@ export class GameScene extends Phaser.Scene {
     const c = this.add.container(x, y).setDepth(8);
     const bgG = this.add.graphics();
     this.drawWoodBtn(bgG, S, R, false);
-    const ic = this.add.image(0, -2, "ic_bulb").setDisplaySize(32, 32).setTint(0xffcc14);
+    const ic = this.add.image(0, -2, "ic_bulb").setDisplaySize(32, 32).setTint(0xef9f00);
     c.add([bgG, ic]);
     c.setData("icon", ic);   // useHint reads this for cooldown fade
     c.setSize(S, S);
@@ -604,7 +610,7 @@ export class GameScene extends Phaser.Scene {
     const count = Economy.getBoosters()[kind];
     this.drawBadge(badgeG, badgeY, count);
 
-    const badgeTxt = this.add.text(0, badgeY, String(count), {
+    const badgeTxt = this.add.text(0, badgeY, count > 0 ? String(count) : "+", {
       fontFamily: "system-ui, sans-serif",
       fontSize: "15px",
       color: "#ffffff",
@@ -633,15 +639,90 @@ export class GameScene extends Phaser.Scene {
     const badgeTxt = btn.getData("badgeTxt") as Phaser.GameObjects.Text;
     const badgeY = btn.getData("badgeY")   as number;
     this.drawBadge(badgeG, badgeY, count);
-    badgeTxt.setText(String(count));
+    badgeTxt.setText(count > 0 ? String(count) : "+");
+  }
+
+  /** Map a booster kind to its on-screen button. */
+  private boosterButton(kind: "hammer" | "swap" | "bomb"): Phaser.GameObjects.Container {
+    return kind === "hammer" ? this.hammerBtn : kind === "bomb" ? this.bombBtn : this.swapBtn;
   }
 
   private useBooster(kind: "hammer" | "swap" | "bomb"): void {
     if (this.ended) return;
+    // Out of stock → offer to buy one right here, then use it immediately.
     if (Economy.getBoosters()[kind] <= 0) {
-      this.toast(`No ${kind} left`);
+      this.promptBuyBooster(kind, () => this.activateBooster(kind));
       return;
     }
+    this.activateBooster(kind);
+  }
+
+  /** Open a compact "buy one booster" prompt; `onBought` fires after a success. */
+  private promptBuyBooster(kind: "hammer" | "swap" | "bomb" | "revive", onBought: () => void): void {
+    const meta = BOOSTER_META[kind];
+    const layer = this.add.container(0, 0).setDepth(220);
+    const dim = this.add
+      .rectangle(0, 0, DESIGN.width, DESIGN.height, 0x000000, 0.55)
+      .setOrigin(0)
+      .setInteractive();
+    layer.add(dim);
+
+    const pw = 320;
+    const ph = 250;
+    const px = (DESIGN.width - pw) / 2;
+    const py = (DESIGN.height - ph) / 2;
+    const panel = this.add.graphics();
+    panel.fillStyle(UI.shadow, 0.4).fillRoundedRect(px - 2, py + 10, pw + 4, ph, 24);
+    panel.fillStyle(UI.glass, 0.98).fillRoundedRect(px, py, pw, ph, 22);
+    panel.fillStyle(0xffffff, 0.07).fillRoundedRect(px + 3, py + 3, pw - 6, ph * 0.4, 20);
+    panel.lineStyle(1.5, UI.glassStroke, 0.9).strokeRoundedRect(px + 1, py + 1, pw - 2, ph - 2, 21);
+    layer.add(panel);
+
+    layer.add(this.add.image(DESIGN.width / 2, py + 56, meta.icon).setDisplaySize(46, 46).setTint(meta.tint));
+    layer.add(
+      this.add
+        .text(DESIGN.width / 2, py + 100, meta.name, {
+          fontFamily: "system-ui, sans-serif", fontSize: "26px", color: UI.textPrimary, fontStyle: "900",
+        })
+        .setOrigin(0.5)
+    );
+    layer.add(
+      this.add
+        .text(DESIGN.width / 2, py + 130, meta.desc, {
+          fontFamily: "system-ui, sans-serif", fontSize: "16px", color: UI.textSecondary,
+        })
+        .setOrigin(0.5)
+    );
+
+    const close = () => layer.destroy();
+    const buy = makeButton(this, DESIGN.width / 2, py + 190, `${meta.price}`, {
+      width: 200,
+      height: 52,
+      iconKey: "ic_coin",
+      iconTint: 0xffc94d,
+      onClick: () => {
+        if (Economy.spendCoins(meta.price)) {
+          Economy.addBooster(meta.kind, 1);
+          this.coinPill.setValue(String(Economy.getCoins()));
+          close();
+          onBought();
+        } else {
+          this.toast("Not enough coins");
+        }
+      },
+    });
+    layer.add(buy);
+    dim.on("pointerup", close);
+
+    layer.setAlpha(0);
+    this.tweens.add({ targets: layer, alpha: 1, duration: 160 });
+  }
+
+  /** Arm/apply a booster the player already owns (consumes on actual use). */
+  private activateBooster(kind: "hammer" | "swap" | "bomb"): void {
+    if (this.ended) return;
+    if (Economy.getBoosters()[kind] <= 0) return;
+    this.refreshBoosterBadge(this.boosterButton(kind), kind);
     if (kind === "swap") {
       Economy.useBooster("swap");
       Analytics.track("booster_used", { kind });
@@ -1113,7 +1194,7 @@ export class GameScene extends Phaser.Scene {
   private showCombo(res: PlaceResult): void {
     const lines = res.clearedRows.length + res.clearedCols.length;
     let msg = "";
-    let color = "#ffc41a";
+    let color = "#3df0cc";
     if (res.perfectClear) msg = "PERFECT!";
     else if (res.fever) {
       msg = `FEVER ×${SCORING.feverMultiplier}!`;
@@ -1229,7 +1310,7 @@ export class GameScene extends Phaser.Scene {
         .text(x + 4, yy, String(this.model.remainingCollect[kind]), {
           fontFamily: "system-ui, sans-serif",
           fontSize: "24px",
-          color: "#fff",
+          color: UI.textPrimary,
           fontStyle: "900",
         })
         .setOrigin(0, 0.5)
@@ -1318,7 +1399,7 @@ export class GameScene extends Phaser.Scene {
       const moves = this.model.movesLeft();
       this.movesText.setText(moves !== undefined ? `Moves ${moves}` : "");
       // Urgency cue: the counter turns red when the budget is nearly spent.
-      this.movesText.setColor(moves !== undefined && moves <= 3 ? "#ff6b6b" : "#cfd6ff");
+      this.movesText.setColor(moves !== undefined && moves <= 3 ? UI.danger : UI.textPrimary);
     }
     // Objective row text (score/lines/perfect). Collect uses the counters.
     if (this.goalText && this.model.goal) {
@@ -1396,7 +1477,7 @@ export class GameScene extends Phaser.Scene {
 
   private showEnd(won: boolean, score: number, coins: number, completed: number, achievements: string[]): void {
     const overlay = this.add.container(0, 0).setDepth(50);
-    const dim = this.add.rectangle(0, 0, DESIGN.width, DESIGN.height, 0x050310, 0.65).setOrigin(0).setInteractive();
+    const dim = this.add.rectangle(0, 0, DESIGN.width, DESIGN.height, 0x000000, 0.6).setOrigin(0).setInteractive();
     overlay.add(dim);
 
     const pw = 380;
@@ -1404,20 +1485,19 @@ export class GameScene extends Phaser.Scene {
     const px = (DESIGN.width - pw) / 2;
     const py = (DESIGN.height - ph) / 2;
     const panel = this.add.graphics();
-    // Drop shadows
-    panel.fillStyle(0x000000, 0.5).fillRoundedRect(px - 2, py + 14, pw + 4, ph, 28);
-    panel.fillStyle(0x000000, 0.3).fillRoundedRect(px, py + 7, pw, ph, 26);
-    // Panel body
-    panel.fillStyle(0x1e1870, 1).fillRoundedRect(px, py, pw, ph, 24);
+    // Drop shadow
+    panel.fillStyle(UI.shadow, 0.3).fillRoundedRect(px - 2, py + 14, pw + 4, ph, 28);
+    // Dark glass panel body
+    panel.fillStyle(UI.glass, 0.98).fillRoundedRect(px, py, pw, ph, 24);
     // Top gloss
-    panel.fillStyle(0xffffff, 0.05).fillRoundedRect(px, py, pw, ph * 0.4, 24);
+    panel.fillStyle(0xffffff, 0.07).fillRoundedRect(px + 3, py + 3, pw - 6, ph * 0.36, 22);
     // Inner highlight border
-    panel.lineStyle(1.5, 0xffffff, 0.18).strokeRoundedRect(px + 1, py + 1, pw - 2, ph - 2, 23);
+    panel.lineStyle(1.5, UI.glassStroke, 0.9).strokeRoundedRect(px + 1, py + 1, pw - 2, ph - 2, 23);
     overlay.add(panel);
 
     const isBest = (this.mode === "classic" || this.mode === "rush") && score >= this.best && score > 0;
     if (won || isBest) {
-      edgeFlash(this, 0xffc41a, 0.5);
+      edgeFlash(this, UI.accent, 0.5);
       confetti(this, DESIGN.width / 2, py + 40, 28);
     }
     const rushTimeUp = this.mode === "rush" && (this.rushEndsAt ?? 0) - this.time.now <= 0;
@@ -1431,14 +1511,14 @@ export class GameScene extends Phaser.Scene {
           ? "Out of Moves!"
           : "Game Over";
     overlay.add(this.add.text(DESIGN.width / 2, py + 50, titleStr, {
-      fontFamily: "system-ui, sans-serif", fontSize: "34px", color: "#fff", fontStyle: "900",
-    }).setOrigin(0.5).setShadow(0, 4, "rgba(0,0,0,0.5)", 6, false, true));
+      fontFamily: "system-ui, sans-serif", fontSize: "34px", color: UI.textPrimary, fontStyle: "900",
+    }).setOrigin(0.5));
 
     if (this.mode === "adventure" && won && completed > 0) {
       // Single completion badge: green disc + check (pass/fail, not a star grade).
       const badge = this.add.container(DESIGN.width / 2, py + 102);
       const disc = this.add.graphics();
-      disc.fillStyle(0x1fc952, 1).fillCircle(0, 0, 30);
+      disc.fillStyle(UI.successInt, 1).fillCircle(0, 0, 30);
       disc.fillStyle(0xffffff, 0.18).fillCircle(0, -8, 24);
       const check = this.add.image(0, 0, "ic_check").setDisplaySize(38, 38).setTint(0xffffff);
       badge.add([disc, check]);
@@ -1450,31 +1530,31 @@ export class GameScene extends Phaser.Scene {
       const badgeG = this.add.graphics();
       const bw = 130;
       const bh = 30;
-      badgeG.fillStyle(0x000000, 0.3).fillRoundedRect(DESIGN.width / 2 - bw / 2, py + 82, bw, bh, 15);
-      badgeG.fillStyle(0xffc41a, 1).fillRoundedRect(DESIGN.width / 2 - bw / 2, py + 80, bw, bh, 15);
-      badgeG.fillStyle(0xffffff, 0.2).fillRoundedRect(DESIGN.width / 2 - bw / 2 + 4, py + 82, bw - 8, bh * 0.4, 12);
+      badgeG.fillStyle(UI.shadow, 0.18).fillRoundedRect(DESIGN.width / 2 - bw / 2, py + 82, bw, bh, 15);
+      badgeG.fillStyle(UI.accent, 1).fillRoundedRect(DESIGN.width / 2 - bw / 2, py + 80, bw, bh, 15);
+      badgeG.fillStyle(0xffffff, 0.28).fillRoundedRect(DESIGN.width / 2 - bw / 2 + 4, py + 82, bw - 8, bh * 0.4, 12);
       overlay.add(badgeG);
       overlay.add(this.add.text(DESIGN.width / 2, py + 95, "NEW BEST", {
-        fontFamily: "system-ui, sans-serif", fontSize: "16px", color: "#1e0a00", fontStyle: "900",
+        fontFamily: "system-ui, sans-serif", fontSize: "16px", color: "#ffffff", fontStyle: "900",
       }).setOrigin(0.5));
     }
 
     overlay.add(this.add.text(DESIGN.width / 2, py + 152, String(score), {
-      fontFamily: "system-ui, sans-serif", fontSize: "66px", color: "#fff", fontStyle: "900",
-    }).setOrigin(0.5).setShadow(0, 5, "rgba(0,0,0,0.45)", 8, false, true));
+      fontFamily: "system-ui, sans-serif", fontSize: "66px", color: UI.textPrimary, fontStyle: "900",
+    }).setOrigin(0.5));
 
     const coinTxt = this.add
       .text(DESIGN.width / 2 + 14, py + 200, `+${coins}`, {
-        fontFamily: "system-ui, sans-serif", fontSize: "22px", color: "#ffc41a", fontStyle: "bold",
+        fontFamily: "system-ui, sans-serif", fontSize: "22px", color: "#d99500", fontStyle: "bold",
       })
       .setOrigin(0, 0.5);
-    overlay.add(this.add.image(DESIGN.width / 2 - 4, py + 200, "ic_coin").setDisplaySize(24, 24).setTint(0xffc41a).setOrigin(1, 0.5));
+    overlay.add(this.add.image(DESIGN.width / 2 - 4, py + 200, "ic_coin").setDisplaySize(24, 24).setTint(0xf2b400).setOrigin(1, 0.5));
     overlay.add(coinTxt);
 
     if (achievements.length > 0) {
-      overlay.add(this.add.image(DESIGN.width / 2 - pw / 2 + 30, py + 234, "ic_trophy").setDisplaySize(20, 20).setTint(0x9be8a0));
+      overlay.add(this.add.image(DESIGN.width / 2 - pw / 2 + 30, py + 234, "ic_trophy").setDisplaySize(20, 20).setTint(UI.successInt));
       overlay.add(this.add.text(DESIGN.width / 2 + 4, py + 234, achievements.join(", "), {
-        fontFamily: "system-ui, sans-serif", fontSize: "15px", color: "#9be8a0",
+        fontFamily: "system-ui, sans-serif", fontSize: "15px", color: UI.success,
         align: "center", wordWrap: { width: pw - 80 },
       }).setOrigin(0.5));
     }
@@ -1487,8 +1567,8 @@ export class GameScene extends Phaser.Scene {
       const revive = makeButton(this, DESIGN.width / 2, btnY, label, {
         width: 290,
         height: 58,
-        fill: 0x1fc952,
-        textColor: "#052a12",
+        fill: UI.successInt,
+        textColor: "#ffffff",
         iconKey: hasBooster ? "ic_heart" : undefined,
         iconTint: 0xffffff,
       });
@@ -1523,14 +1603,14 @@ export class GameScene extends Phaser.Scene {
     if (showNext) {
       const nextId = (this.level as { id: number }).id + 1;
       const next = makeButton(this, DESIGN.width / 2 + xs[pi++], btnY, "Next", {
-        width: bw, height: 56, fill: 0x1fc952, textColor: "#052a12",
+        width: bw, height: 56, fill: UI.successInt, textColor: "#ffffff",
         onClick: () => { void Ads.maybeShowInterstitial(); this.scene.start("Game", { mode: "adventure", levelId: nextId }); },
       });
       overlay.add(next);
     }
 
     const menu = makeButton(this, DESIGN.width / 2 + xs[pi++], btnY, "Menu", {
-      width: bw, height: 56, fill: 0x2a1e80, textColor: "#d0c8ff",
+      width: bw, height: 56, glass: true,
       onClick: () => this.scene.start("Menu"),
     });
     overlay.add(menu);

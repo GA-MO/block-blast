@@ -1,4 +1,4 @@
-# Block Blast — Roadmap
+# Tessera — Roadmap
 
 Phased delivery. Each phase is independently shippable/demoable.
 
